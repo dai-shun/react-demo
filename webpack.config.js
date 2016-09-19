@@ -8,18 +8,6 @@ var webpack=require('webpack');
 var _=require('lodash');
 var faker=require('faker');
 module.exports={
-    externals: {
-        'react': 'React',
-        'react-dom':'ReactDOM',
-        'antd':'antd',
-        'react-router':'ReactRouter',
-        'react-redux':'ReactRedux',
-        'redux':'Redux',
-        'redux-thunk':'ReduxThunk',
-        'jquery':'$openjQuery',
-        'pubsub':'PubSub',
-        '$open':'$open'
-    },
     resolve:{
         extensions:['','.js','.jsx']
     },
@@ -43,17 +31,22 @@ module.exports={
                     presets: ['react', 'es2015']
                 }
             },
-            {
-                test: /\.css$/,
-                loaders: [
-                    'style?sourceMap',
-                    'css?modules&importLoaders=1&localIdentName=[path]___[name]__[local]___[hash:base64:5]',
-                ]
-            }
+            // {
+            //     test: /\.css$/,
+            //     loaders: [
+            //         'style?sourceMap',
+            //         'css?modules&importLoaders=1&localIdentName=[path]___[name]__[local]___[hash:base64:5]',
+            //     ]
+            // },
+            { test: /\.css$/, loader: "style-loader!css-loader" },
+            { test: /\.(woff|woff2)$/,  loader: "url-loader?limit=10000&mimetype=application/font-woff" },
+            { test: /\.(ttf|eot|svg)$/,    loader: "file-loader" }
         ]
     },
     plugins: [
-        new HtmlWebpackPlugin(),
+        new HtmlWebpackPlugin({
+            template:"src/utils/index.html"
+        }),
         new webpack.optimize.UglifyJsPlugin({//压缩代码
             compress: {
                 warnings: false
@@ -62,35 +55,30 @@ module.exports={
     ],
     devServer:{
         inline:true,
+        host:"127.0.0.1",
         port:3000,
-        // proxy: {
-        //     '/admin/*': {
-        //         // target: 'http://openqa.zhaopin.com/app',
-        //         target:"http://127.0.0.1:8081",
-        //         secure: false,
-        //         changeOrigin:true
-        //     }
-        // },
+        contentBase:"dist",
+        proxy: {
+            // 'openAdmin/*': {
+            //     target:"127.0.0.1:3000",
+            //     secure: false,
+            //     changeOrigin:true
+            // }
+        },
         setup: function(app) {
-            // Here you can access the Express app object and add your own custom middleware to it.
-            // For example, to define custom handlers for some paths:
-            // app.get('/some/path', function(req, res) {
-            //   res.json({ custom: 'response' });
-            // });
-            app.get("/admin/product/list.do",function (req,res) {
-                res.json({
-                    data:{
-                        total:100,
-                        data:_.times(10,function () {
+            app.get("/openAdmin/app/appList.do",function (req,res) {
+                res.json(
+                        _.times(10,function () {
                             return {
-                                "productId": faker.random.number(),
-                                "showName": faker.name.title(),
-                                "urlPath":faker.internet.url(),
-                                "productDesc": faker.random.number()
+                                "clientId": faker.random.number(),
+                                "clientName": faker.name.title(),
+                                "developerName":faker.name.findName(),
+                                "clientUrl": faker.internet.url(),
+                                "redirectUrl":faker.internet.url(),
+                                "clientStatus":faker.random.number(2)
                             }
                         })
-                    }
-                });
+                );
             })
 
         },
